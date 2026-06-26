@@ -1,78 +1,296 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import Image from 'next/image';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+export default function AuthorizePage() {
+  const router = useRouter();
+  const [code, setCode] = useState('');
+  const [email, setEmail] = useState('');
+  const [relationship, setRelationship] = useState('');
+  const [minorDoc, setMinorDoc] = useState<File | null>(null);
+  const [guardianDoc, setGuardianDoc] = useState<File | null>(null);
+  const [terms, setTerms] = useState(false);
+  const [privacy, setPrivacy] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [verified, setVerified] = useState(false);
 
-export default function Home() {
+  useEffect(() => {
+    if (router.isReady) {
+      const { code: urlCode, email: urlEmail } = router.query;
+      if (urlCode) setCode((urlCode as string).toUpperCase());
+      if (urlEmail) setEmail((urlEmail as string).toLowerCase());
+    }
+  }, [router.isReady, router.query]);
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/verify-guardian-code`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            code: code.trim().toUpperCase(),
+            guardian_email: email.trim().toLowerCase(),
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Verificación fallida');
+      }
+
+      const data = await response.json();
+      setMessage(`✓ Verificado. Responsable: ${data.guardian_info?.name || 'Responsable'}`);
+      setVerified(true);
+      setError('');
+    } catch (err: any) {
+      setError(err.message || 'Error al verificar');
+      setMessage('');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1]);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const uploadDoc = async (base64: string, contentType: string, docType: string) => {
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/upload-guardian-doc`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          guardian_code: code.trim().toUpperCase(),
+          guardian_email: email.trim().toLowerCase(),
+          doc_type: docType,
+          file_base64: base64,
+          content_type: contentType,
+        }),
+      }
+    );
+
+    if (!response.ok) throw new Error('Upload failed');
+    return response.json();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!minorDoc || !guardianDoc || !relationship || !terms || !privacy) {
+      setError('Completa todos los campos y acepta los términos');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+
+    try {
+      const minorBase64 = await fileToBase64(minorDoc);
+      await uploadDoc(minorBase64, minorDoc.type, 'minor_doc');
+
+      const guardianBase64 = await fileToBase64(guardianDoc);
+      await uploadDoc(guardianBase64, guardianDoc.type, 'guardian_doc');
+
+      setMessage('✓ Documentos enviados y cuenta autorizada. El menor recibirá una notificación por email.');
+      setVerified(false);
+      setCode('');
+      setEmail('');
+      setMinorDoc(null);
+      setGuardianDoc(null);
+      setRelationship('');
+      setTerms(false);
+      setPrivacy(false);
+    } catch (err: any) {
+      setError(err.message || 'Error al enviar');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black`}
-    >
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the index.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
+      <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <div className="text-center mb-8">
+          <Image
+            src="/logo.png"
+            alt="FutbolTalent"
+            width={150}
+            height={80}
+            priority
+            className="mx-auto mb-4"
+          />
+          <p className="text-gray-600">Autorización de cuenta de menor</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <form onSubmit={handleVerify} className="space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Código de autorización
+            </label>
+            <input
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value.toUpperCase())}
+              placeholder="Ej: RESP-123456"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+              disabled={verified}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs/pages/getting-started?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email del responsable
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value.toLowerCase())}
+              placeholder="Ej: responsable@email.com"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+              disabled={verified}
+            />
+          </div>
+
+          {!verified && (
+            <button
+              type="submit"
+              disabled={loading || !code || !email}
+              className="w-full bg-blue-900 text-white py-2 rounded-lg font-semibold hover:bg-blue-800 disabled:opacity-50 transition"
+            >
+              {loading ? 'Verificando...' : 'Verificar código'}
+            </button>
+          )}
+        </form>
+
+        {message && (
+          <div className="mt-6 p-4 bg-green-100 text-green-800 rounded-lg">
+            {message}
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-6 p-4 bg-red-100 text-red-800 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {verified && (
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6 pt-8 border-t">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Relación con el menor
+              </label>
+              <select
+                value={relationship}
+                onChange={(e) => setRelationship(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                required
+              >
+                <option value="">Selecciona...</option>
+                <option value="madre">Madre</option>
+                <option value="padre">Padre</option>
+                <option value="tutor_legal">Tutor/a legal</option>
+                <option value="responsable_autorizado">Responsable autorizado/a</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Documento del menor (foto de DNI/cédula)
+              </label>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setMinorDoc(e.target.files?.[0] || null)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              />
+              {minorDoc && (
+                <p className="text-sm text-gray-500 mt-2">✓ {minorDoc.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Documento del responsable (foto de DNI/cédula)
+              </label>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                onChange={(e) => setGuardianDoc(e.target.files?.[0] || null)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                required
+              />
+              {guardianDoc && (
+                <p className="text-sm text-gray-500 mt-2">✓ {guardianDoc.name}</p>
+              )}
+            </div>
+
+            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={terms}
+                  onChange={(e) => setTerms(e.target.checked)}
+                  className="mt-1"
+                />
+                <span className="text-sm text-gray-700">
+                  Acepto los términos y condiciones de FutbolTalent
+                </span>
+              </label>
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={privacy}
+                  onChange={(e) => setPrivacy(e.target.checked)}
+                  className="mt-1"
+                />
+                <span className="text-sm text-gray-700">
+                  Acepto la política de privacidad
+                </span>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || !minorDoc || !guardianDoc || !relationship || !terms || !privacy}
+              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 transition"
+            >
+              {loading ? 'Enviando...' : 'Autorizar y enviar documentos'}
+            </button>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
