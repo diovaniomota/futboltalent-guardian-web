@@ -23,6 +23,7 @@ export default function AuthorizePage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [verified, setVerified] = useState(false);
+  const [playerName, setPlayerName] = useState('');
 
   function calculateAge(birthday: string): number {
     const birth = new Date(birthday);
@@ -82,6 +83,7 @@ export default function AuthorizePage() {
       setGuardianId(String(data.guardian_info?.id ?? ''));
       setPlayerId(String(data.guardian_info?.player_id ?? ''));
       setPlayerBirthDate(data.player_birth_date ?? null);
+      setPlayerName(String(data.player_name || ''));
 
       setMessage(`✓ Verificado. Responsable: ${data.guardian_info?.name || 'Responsable'}`);
       setVerified(true);
@@ -337,8 +339,20 @@ export default function AuthorizePage() {
         {verified && (
           <form onSubmit={handleSubmit} className="mt-8 space-y-6 pt-8 border-t">
             <div>
+              <h2 className="text-xl font-bold text-gray-900">Confirmar autorización</h2>
+              <p className="text-sm text-gray-600 mt-1">Completa la documentación y confirma cada punto para autorizar la cuenta del jugador.</p>
+            </div>
+
+            {playerName && (
+              <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
+                <span className="text-blue-700 text-lg">👤</span>
+                <p className="text-sm text-blue-800 font-medium">Estás autorizando la cuenta de <strong>{playerName}</strong></p>
+              </div>
+            )}
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Relación con el menor
+                Tu vínculo con el jugador *
               </label>
               <select
                 value={relationship}
@@ -346,7 +360,7 @@ export default function AuthorizePage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 required
               >
-                <option value="">Selecciona...</option>
+                <option value="">Seleccionar vínculo...</option>
                 <option value="madre">Madre</option>
                 <option value="padre">Padre</option>
                 <option value="tutor_legal">Tutor/a legal</option>
@@ -355,8 +369,22 @@ export default function AuthorizePage() {
             </div>
 
             <div>
+              <p className="text-sm font-medium text-gray-700 mb-1">Documentos de identidad *</p>
+              <p className="text-sm text-gray-500 mb-3">Para verificar esta autorización, necesitamos una fotografía o copia legible de los documentos del jugador y del adulto responsable.</p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 text-sm text-amber-800">
+                <p className="font-semibold mb-2">Cómo tomar la foto correctamente:</p>
+                <ul className="space-y-1 list-disc list-inside">
+                  <li>Documento completo y bien iluminado</li>
+                  <li>Sin reflejos, sombras ni partes cortadas</li>
+                  <li>La foto debe ser nítida y con todos los bordes visibles</li>
+                  <li>Formatos aceptados: JPG · PNG · PDF — Máximo 5 MB</li>
+                </ul>
+              </div>
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Documento del menor (foto de DNI/cédula)
+                Documento del jugador (DNI/cédula)
               </label>
               <input
                 type="file"
@@ -372,7 +400,7 @@ export default function AuthorizePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Documento del responsable (foto de DNI/cédula)
+                Documento del adulto responsable (DNI/cédula)
               </label>
               <input
                 type="file"
@@ -409,6 +437,11 @@ export default function AuthorizePage() {
                 )}
               </div>
             )}
+
+            <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3">
+              Los documentos serán utilizados únicamente para verificar esta autorización y serán tratados conforme a nuestra{' '}
+              <button type="button" onClick={() => window.open('https://futboltalent.pro/politica-privacidad', '_blank')} className="text-blue-700 underline">Política de Privacidad</button>.
+            </p>
 
             <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
               <div className="flex items-start gap-3">
