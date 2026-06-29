@@ -9,6 +9,8 @@ export default function AuthorizePage() {
   const router = useRouter();
   const [code, setCode] = useState('');
   const [email, setEmail] = useState('');
+  const [guardianId, setGuardianId] = useState('');
+  const [playerId, setPlayerId] = useState('');
   const [relationship, setRelationship] = useState('');
   const [minorDoc, setMinorDoc] = useState<File | null>(null);
   const [guardianDoc, setGuardianDoc] = useState<File | null>(null);
@@ -46,6 +48,11 @@ export default function AuthorizePage() {
       }
 
       const data = await response.json();
+
+      // Guarda IDs para usar no consent depois
+      setGuardianId(String(data.guardian_info?.id ?? ''));
+      setPlayerId(String(data.guardian_info?.player_id ?? ''));
+
       setMessage(`✓ Verificado. Responsable: ${data.guardian_info?.name || 'Responsable'}`);
       setVerified(true);
       setError('');
@@ -67,7 +74,6 @@ export default function AuthorizePage() {
     if (parsedCode) setCode(parsedCode);
     if (parsedEmail) setEmail(parsedEmail);
 
-    // Auto-verify when both arrive via URL (guardian clicked link from email)
     if (parsedCode && parsedEmail) {
       verifyCode(parsedCode, parsedEmail);
     }
@@ -114,6 +120,33 @@ export default function AuthorizePage() {
     return response.json();
   };
 
+  const recordConsent = async () => {
+    const response = await fetch(
+      `${supabaseUrl}/functions/v1/record-guardian-consent`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          guardian_code: code.trim().toUpperCase(),
+          guardian_email: email.trim().toLowerCase(),
+          guardian_id: guardianId,
+          player_id: playerId,
+          relationship_type: relationship,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al registrar consentimiento');
+    }
+    return response.json();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!minorDoc || !guardianDoc || !relationship || !terms || !privacy) {
@@ -131,10 +164,14 @@ export default function AuthorizePage() {
       const guardianBase64 = await fileToBase64(guardianDoc);
       await uploadDoc(guardianBase64, guardianDoc.type, 'guardian_doc');
 
-      setMessage('✓ Documentos enviados y cuenta autorizada. El menor recibirá una notificación por email.');
+      await recordConsent();
+
+      setMessage('✓ Cuenta autorizada y documentos enviados. El menor recibirá una notificación por email.');
       setVerified(false);
       setCode('');
       setEmail('');
+      setGuardianId('');
+      setPlayerId('');
       setMinorDoc(null);
       setGuardianDoc(null);
       setRelationship('');
