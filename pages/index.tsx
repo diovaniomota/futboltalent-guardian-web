@@ -66,7 +66,14 @@ export default function AuthorizePage() {
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.error || 'Verificación fallida');
+        const errorMessages: Record<string, string> = {
+          guardian_already_approved: 'Esta cuenta ya fue autorizada anteriormente. El código de autorización solo puede usarse una vez.',
+          guardian_not_found: 'Código o email incorrecto. Verificá los datos e intentá nuevamente.',
+          guardian_code_expired: 'El código de autorización venció. El menor debe generar uno nuevo desde la app.',
+          guardian_code_not_sendable: 'Este código no es válido. Contactá al club o al equipo de FutbolTalent.',
+        };
+        const rawError = errData.error || '';
+        throw new Error(errorMessages[rawError] || 'Verificación fallida. Intentá nuevamente.');
       }
 
       const data = await response.json();
@@ -165,7 +172,12 @@ export default function AuthorizePage() {
 
     if (!response.ok) {
       const err = await response.json();
-      throw new Error(err.error || 'Error al registrar consentimiento');
+      const consentErrors: Record<string, string> = {
+        guardian_already_approved: 'Esta cuenta ya fue autorizada anteriormente.',
+        guardian_not_found: 'No se encontró el registro del responsable. Intentá nuevamente.',
+        consent_record_failed: 'Error al guardar la autorización. Intentá nuevamente.',
+      };
+      throw new Error(consentErrors[err.error] || 'Error al registrar la autorización. Intentá nuevamente.');
     }
     return response.json();
   };
