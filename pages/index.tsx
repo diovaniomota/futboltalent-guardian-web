@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 
@@ -19,16 +19,7 @@ export default function AuthorizePage() {
   const [error, setError] = useState('');
   const [verified, setVerified] = useState(false);
 
-  useEffect(() => {
-    if (router.isReady) {
-      const { code: urlCode, email: urlEmail } = router.query;
-      if (urlCode) setCode((urlCode as string).toUpperCase());
-      if (urlEmail) setEmail((urlEmail as string).toLowerCase());
-    }
-  }, [router.isReady, router.query]);
-
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const verifyCode = useCallback(async (codeVal: string, emailVal: string) => {
     setError('');
     setLoading(true);
 
@@ -43,8 +34,8 @@ export default function AuthorizePage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            code: code.trim().toUpperCase(),
-            guardian_email: email.trim().toLowerCase(),
+            code: codeVal.trim().toUpperCase(),
+            guardian_email: emailVal.trim().toLowerCase(),
           }),
         }
       );
@@ -64,6 +55,27 @@ export default function AuthorizePage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const { code: urlCode, email: urlEmail } = router.query;
+    const parsedCode = urlCode ? (urlCode as string).trim().toUpperCase() : '';
+    const parsedEmail = urlEmail ? (urlEmail as string).trim().toLowerCase() : '';
+
+    if (parsedCode) setCode(parsedCode);
+    if (parsedEmail) setEmail(parsedEmail);
+
+    // Auto-verify when both arrive via URL (guardian clicked link from email)
+    if (parsedCode && parsedEmail) {
+      verifyCode(parsedCode, parsedEmail);
+    }
+  }, [router.isReady]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await verifyCode(code, email);
   };
 
   const fileToBase64 = (file: File): Promise<string> => {
@@ -150,38 +162,43 @@ export default function AuthorizePage() {
           <p className="text-gray-600">Autorización de cuenta de menor</p>
         </div>
 
-        <form onSubmit={handleVerify} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Código de autorización
-            </label>
-            <input
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value.toUpperCase())}
-              placeholder="Ej: RESP-123456"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-              disabled={verified}
-            />
+        {loading && !verified && (
+          <div className="text-center py-8 text-gray-500">
+            <div className="text-4xl mb-3">⏳</div>
+            <p>Verificando tu identidad...</p>
           </div>
+        )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email del responsable
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value.toLowerCase())}
-              placeholder="Ej: responsable@email.com"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-              disabled={verified}
-            />
-          </div>
+        {!loading && !verified && (
+          <form onSubmit={handleVerify} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Código de autorización
+              </label>
+              <input
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                placeholder="Ej: RESP-123456"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
 
-          {!verified && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email del responsable
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value.toLowerCase())}
+                placeholder="Ej: responsable@email.com"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+
             <button
               type="submit"
               disabled={loading || !code || !email}
@@ -189,8 +206,8 @@ export default function AuthorizePage() {
             >
               {loading ? 'Verificando...' : 'Verificar código'}
             </button>
-          )}
-        </form>
+          </form>
+        )}
 
         {message && (
           <div className="mt-6 p-4 bg-green-100 text-green-800 rounded-lg">
@@ -201,6 +218,36 @@ export default function AuthorizePage() {
         {error && (
           <div className="mt-6 p-4 bg-red-100 text-red-800 rounded-lg">
             {error}
+            {!verified && (
+              <div className="mt-3">
+                <p className="text-sm mb-2">Ingresa los datos manualmente:</p>
+                <form onSubmit={handleVerify} className="space-y-3">
+                  <input
+                    type="text"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    placeholder="Código (Ej: RESP-123456)"
+                    className="w-full px-3 py-2 border border-red-300 rounded-lg text-gray-900 text-sm"
+                    required
+                  />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value.toLowerCase())}
+                    placeholder="Tu email"
+                    className="w-full px-3 py-2 border border-red-300 rounded-lg text-gray-900 text-sm"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    disabled={loading || !code || !email}
+                    className="w-full bg-blue-900 text-white py-2 rounded-lg font-semibold text-sm hover:bg-blue-800 disabled:opacity-50 transition"
+                  >
+                    {loading ? 'Verificando...' : 'Intentar nuevamente'}
+                  </button>
+                </form>
+              </div>
+            )}
           </div>
         )}
 
