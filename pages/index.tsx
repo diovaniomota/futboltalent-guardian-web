@@ -2,6 +2,20 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 
+function WebModal({ url, title, onClose }: { url: string; title: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50">
+      <div className="bg-white w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl flex flex-col" style={{ height: '88vh' }}>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <span className="font-semibold text-gray-800 text-base">{title}</span>
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-800 text-2xl leading-none">&times;</button>
+        </div>
+        <iframe src={url} className="flex-1 w-full rounded-b-2xl" title={title} />
+      </div>
+    </div>
+  );
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
@@ -20,6 +34,7 @@ export default function AuthorizePage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [verified, setVerified] = useState(false);
+  const [modal, setModal] = useState<{ url: string; title: string } | null>(null);
 
   const verifyCode = useCallback(async (codeVal: string, emailVal: string) => {
     setError('');
@@ -185,6 +200,8 @@ export default function AuthorizePage() {
   };
 
   return (
+    <>
+    {modal && <WebModal url={modal.url} title={modal.title} onClose={() => setModal(null)} />}
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white py-12 px-4">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
@@ -351,14 +368,13 @@ export default function AuthorizePage() {
                 />
                 <div className="text-sm text-gray-700">
                   <label htmlFor="terms-check" className="cursor-pointer">Acepto los </label>
-                  <a
-                    href="https://futboltalent.pro/terms-and-conditions"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-700 underline"
+                  <button
+                    type="button"
+                    onClick={() => setModal({ url: 'https://futboltalent.pro/terms-and-conditions', title: 'Términos y Condiciones' })}
+                    className="text-blue-700 underline font-medium"
                   >
                     términos y condiciones
-                  </a>
+                  </button>
                   <label htmlFor="terms-check" className="cursor-pointer"> de FutbolTalent</label>
                 </div>
               </div>
@@ -372,14 +388,13 @@ export default function AuthorizePage() {
                 />
                 <div className="text-sm text-gray-700">
                   <label htmlFor="privacy-check" className="cursor-pointer">Acepto la </label>
-                  <a
-                    href="https://futboltalent.pro/politica-privacidad"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-700 underline"
+                  <button
+                    type="button"
+                    onClick={() => setModal({ url: 'https://futboltalent.pro/politica-privacidad', title: 'Política de Privacidad' })}
+                    className="text-blue-700 underline font-medium"
                   >
                     política de privacidad
-                  </a>
+                  </button>
                 </div>
               </div>
             </div>
@@ -395,5 +410,6 @@ export default function AuthorizePage() {
         )}
       </div>
     </div>
+    </>
   );
 }
