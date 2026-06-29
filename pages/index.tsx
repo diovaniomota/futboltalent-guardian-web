@@ -17,8 +17,10 @@ export default function AuthorizePage() {
   const [minorDoc, setMinorDoc] = useState<File | null>(null);
   const [guardianDoc, setGuardianDoc] = useState<File | null>(null);
   const [relationshipDoc, setRelationshipDoc] = useState<File | null>(null);
-  const [terms, setTerms] = useState(false);
-  const [privacy, setPrivacy] = useState(false);
+  const [decl1, setDecl1] = useState(false);
+  const [decl2, setDecl2] = useState(false);
+  const [decl3, setDecl3] = useState(false);
+  const [decl4, setDecl4] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -186,8 +188,8 @@ export default function AuthorizePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!minorDoc || !guardianDoc || !relationship || !terms || !privacy) {
-      setError('Completa todos los campos y acepta los términos');
+    if (!minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3 || !decl4) {
+      setError('Completa todos los campos y confirmá todas las declaraciones');
       return;
     }
     if (showRelationshipDoc && !relationshipDoc) {
@@ -223,8 +225,10 @@ export default function AuthorizePage() {
       setGuardianDoc(null);
       setRelationshipDoc(null);
       setRelationship('');
-      setTerms(false);
-      setPrivacy(false);
+      setDecl1(false);
+      setDecl2(false);
+      setDecl3(false);
+      setDecl4(false);
     } catch (err: any) {
       setError(err.message || 'Error al enviar');
     } finally {
@@ -382,115 +386,92 @@ export default function AuthorizePage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Documento del jugador (DNI/cédula)
-              </label>
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={(e) => setMinorDoc(e.target.files?.[0] || null)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
-              />
-              {minorDoc && (
-                <p className="text-sm text-gray-500 mt-2">✓ {minorDoc.name}</p>
-              )}
-            </div>
+            <div className="space-y-3">
+              <p className="text-xs text-gray-500">Los documentos son privados y serán revisados sólo por el equipo de FutbolTalent.</p>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Documento del adulto responsable (DNI/cédula)
+              <label className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition bg-white">
+                <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+                  <span className="text-gray-400 flex-shrink-0">📄</span>
+                  <span className="truncate">{minorDoc ? minorDoc.name : 'DNI / documento del jugador'}</span>
+                </div>
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <input type="file" accept="image/*,application/pdf" onChange={(e) => setMinorDoc(e.target.files?.[0] || null)} className="sr-only" required />
               </label>
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={(e) => setGuardianDoc(e.target.files?.[0] || null)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                required
-              />
-              {guardianDoc && (
-                <p className="text-sm text-gray-500 mt-2">✓ {guardianDoc.name}</p>
-              )}
+
+              <label className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition bg-white">
+                <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+                  <span className="text-gray-400 flex-shrink-0">📄</span>
+                  <span className="truncate">{guardianDoc ? guardianDoc.name : 'DNI / documento del responsable'}</span>
+                </div>
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <input type="file" accept="image/*,application/pdf" onChange={(e) => setGuardianDoc(e.target.files?.[0] || null)} className="sr-only" required />
+              </label>
             </div>
 
             {showRelationshipDoc && (
               <div className="p-4 bg-amber-50 border border-amber-300 rounded-lg">
-                <p className="text-sm font-semibold text-amber-800 mb-1">
-                  Documento de vínculo requerido
-                </p>
+                <p className="text-sm font-semibold text-amber-800 mb-1">Documento de vínculo requerido</p>
                 <p className="text-xs text-amber-700 mb-3">
                   Según la edad del menor o tu relación con él, es necesario adjuntar un documento adicional: certidón/partida de nacimiento, documento de tutela, guarda legal o equivalente.
                 </p>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Documento de vínculo
+                <label className="flex items-center justify-between w-full px-4 py-3 border border-amber-300 rounded-lg cursor-pointer hover:border-amber-500 transition bg-white">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+                    <span className="text-gray-400 flex-shrink-0">📄</span>
+                    <span className="truncate">{relationshipDoc ? relationshipDoc.name : 'Documento de vínculo'}</span>
+                  </div>
+                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  <input type="file" accept="image/*,application/pdf" onChange={(e) => setRelationshipDoc(e.target.files?.[0] || null)} className="sr-only" required={showRelationshipDoc} />
                 </label>
-                <input
-                  type="file"
-                  accept="image/*,application/pdf"
-                  onChange={(e) => setRelationshipDoc(e.target.files?.[0] || null)}
-                  className="w-full px-4 py-2 border border-amber-300 rounded-lg"
-                  required={showRelationshipDoc}
-                />
-                {relationshipDoc && (
-                  <p className="text-sm text-gray-500 mt-2">✓ {relationshipDoc.name}</p>
-                )}
               </div>
             )}
 
-            <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3">
-              Los documentos serán utilizados únicamente para verificar esta autorización y serán tratados conforme a nuestra{' '}
-              <button type="button" onClick={() => window.open('https://futboltalent.pro/politica-privacidad', '_blank')} className="text-blue-700 underline">Política de Privacidad</button>.
-            </p>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                Declaraciones *
+              </div>
 
-            <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-start gap-3">
-                <input
-                  id="terms-check"
-                  type="checkbox"
-                  checked={terms}
-                  onChange={(e) => setTerms(e.target.checked)}
-                  className="mt-1 cursor-pointer"
-                />
-                <div className="text-sm text-gray-700">
-                  <label htmlFor="terms-check" className="cursor-pointer">Acepto los </label>
-                  <button
-                    type="button"
-                    onClick={() => window.open('https://futboltalent.pro/terms-and-conditions', '_blank')}
-                    className="text-blue-700 underline font-medium"
-                  >
-                    términos y condiciones
-                  </button>
-                  <label htmlFor="terms-check" className="cursor-pointer"> de FutbolTalent</label>
+              {[
+                { id: 'decl1', checked: decl1, set: setDecl1, text: 'Declaro ser el adulto responsable del jugador o contar con facultades suficientes para autorizar su participación en FutbolTalent.pro.' },
+                { id: 'decl2', checked: decl2, set: setDecl2, text: 'Declaro haber leído y aceptado los Términos y Condiciones y la Política de Privacidad de FutbolTalent.pro.' },
+                { id: 'decl3', checked: decl3, set: setDecl3, text: 'Autorizo la creación de la cuenta del jugador, el tratamiento de sus datos personales y la publicación de la información deportiva que el jugador decida compartir en la plataforma, de conformidad con la Política de Privacidad de FutbolTalent.pro.' },
+                { id: 'decl4', checked: decl4, set: setDecl4, text: 'Declaro que la información y documentación proporcionadas son veraces, auténticas y corresponden a las personas involucradas en esta solicitud.' },
+              ].map(({ id, checked, set, text }) => (
+                <div key={id} className="flex items-start gap-3">
+                  <input
+                    id={id}
+                    type="checkbox"
+                    checked={checked}
+                    onChange={(e) => set(e.target.checked)}
+                    className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0"
+                  />
+                  <label htmlFor={id} className="text-sm text-gray-700 cursor-pointer leading-snug">{text}</label>
                 </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <input
-                  id="privacy-check"
-                  type="checkbox"
-                  checked={privacy}
-                  onChange={(e) => setPrivacy(e.target.checked)}
-                  className="mt-1 cursor-pointer"
-                />
-                <div className="text-sm text-gray-700">
-                  <label htmlFor="privacy-check" className="cursor-pointer">Acepto la </label>
-                  <button
-                    type="button"
-                    onClick={() => window.open('https://futboltalent.pro/politica-privacidad', '_blank')}
-                    className="text-blue-700 underline font-medium"
-                  >
-                    política de privacidad
-                  </button>
-                </div>
-              </div>
+              ))}
             </div>
 
             <button
               type="submit"
-              disabled={loading || !minorDoc || !guardianDoc || !relationship || !terms || !privacy || (showRelationshipDoc && !relationshipDoc)}
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 transition"
+              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3 || !decl4 || (showRelationshipDoc && !relationshipDoc)}
+              className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 disabled:opacity-50 transition"
             >
-              {loading ? 'Enviando...' : 'Autorizar y enviar documentos'}
+              {loading ? 'Enviando...' : 'Autorizar cuenta'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="w-full text-center text-sm text-gray-500 hover:text-gray-700 py-2 transition"
+            >
+              Volver al inicio
             </button>
           </form>
         )}
