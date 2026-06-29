@@ -341,47 +341,47 @@ export default function AuthorizePage() {
             </div>
 
             <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
-              <label className="flex items-start gap-3 cursor-pointer">
+              <div className="flex items-start gap-3">
                 <input
+                  id="terms-check"
                   type="checkbox"
                   checked={terms}
                   onChange={(e) => setTerms(e.target.checked)}
-                  className="mt-1"
+                  className="mt-1 cursor-pointer"
                 />
-                <span className="text-sm text-gray-700">
-                  Acepto los{' '}
+                <div className="text-sm text-gray-700">
+                  <label htmlFor="terms-check" className="cursor-pointer">Acepto los </label>
                   <a
                     href="https://futboltalent.pro/terms-and-conditions"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-700 underline"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     términos y condiciones
-                  </a>{' '}
-                  de FutbolTalent
-                </span>
-              </label>
-              <label className="flex items-start gap-3 cursor-pointer">
+                  </a>
+                  <label htmlFor="terms-check" className="cursor-pointer"> de FutbolTalent</label>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
                 <input
+                  id="privacy-check"
                   type="checkbox"
                   checked={privacy}
                   onChange={(e) => setPrivacy(e.target.checked)}
-                  className="mt-1"
+                  className="mt-1 cursor-pointer"
                 />
-                <span className="text-sm text-gray-700">
-                  Acepto la{' '}
+                <div className="text-sm text-gray-700">
+                  <label htmlFor="privacy-check" className="cursor-pointer">Acepto la </label>
                   <a
                     href="https://futboltalent.pro/politica-privacidad"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-700 underline"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     política de privacidad
                   </a>
-                </span>
-              </label>
+                </div>
+              </div>
             </div>
 
             <button
