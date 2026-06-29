@@ -25,9 +25,11 @@ export default function AuthorizePage() {
   const [email, setEmail] = useState('');
   const [guardianId, setGuardianId] = useState('');
   const [playerId, setPlayerId] = useState('');
+  const [playerBirthDate, setPlayerBirthDate] = useState<string | null>(null);
   const [relationship, setRelationship] = useState('');
   const [minorDoc, setMinorDoc] = useState<File | null>(null);
   const [guardianDoc, setGuardianDoc] = useState<File | null>(null);
+  const [relationshipDoc, setRelationshipDoc] = useState<File | null>(null);
   const [terms, setTerms] = useState(false);
   const [privacy, setPrivacy] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -35,6 +37,25 @@ export default function AuthorizePage() {
   const [error, setError] = useState('');
   const [verified, setVerified] = useState(false);
   const [modal, setModal] = useState<{ url: string; title: string } | null>(null);
+
+  function calculateAge(birthday: string): number {
+    const birth = new Date(birthday);
+    const now = new Date();
+    let age = now.getFullYear() - birth.getFullYear();
+    const m = now.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
+    return age;
+  }
+
+  function needsRelationshipDoc(birthDate: string | null, rel: string): boolean {
+    if (!birthDate) return false;
+    const age = calculateAge(birthDate);
+    if (age <= 15) return true;
+    if (age <= 17 && rel !== 'madre' && rel !== 'padre') return true;
+    return false;
+  }
+
+  const showRelationshipDoc = needsRelationshipDoc(playerBirthDate, relationship);
 
   const verifyCode = useCallback(async (codeVal: string, emailVal: string) => {
     setError('');
@@ -67,6 +88,7 @@ export default function AuthorizePage() {
       // Guarda IDs para usar no consent depois
       setGuardianId(String(data.guardian_info?.id ?? ''));
       setPlayerId(String(data.guardian_info?.player_id ?? ''));
+      setPlayerBirthDate(data.player_birth_date ?? null);
 
       setMessage(`✓ Verificado. Responsable: ${data.guardian_info?.name || 'Responsable'}`);
       setVerified(true);
@@ -168,6 +190,10 @@ export default function AuthorizePage() {
       setError('Completa todos los campos y acepta los términos');
       return;
     }
+    if (showRelationshipDoc && !relationshipDoc) {
+      setError('Debes adjuntar el documento de vínculo (certidón de nacimiento, tutela, etc.)');
+      return;
+    }
 
     setError('');
     setLoading(true);
@@ -179,6 +205,11 @@ export default function AuthorizePage() {
       const guardianBase64 = await fileToBase64(guardianDoc);
       await uploadDoc(guardianBase64, guardianDoc.type, 'guardian_doc');
 
+      if (showRelationshipDoc && relationshipDoc) {
+        const relBase64 = await fileToBase64(relationshipDoc);
+        await uploadDoc(relBase64, relationshipDoc.type, 'relationship_doc');
+      }
+
       await recordConsent();
 
       setMessage('✓ Cuenta autorizada y documentos enviados. El menor recibirá una notificación por email.');
@@ -187,8 +218,10 @@ export default function AuthorizePage() {
       setEmail('');
       setGuardianId('');
       setPlayerId('');
+      setPlayerBirthDate(null);
       setMinorDoc(null);
       setGuardianDoc(null);
+      setRelationshipDoc(null);
       setRelationship('');
       setTerms(false);
       setPrivacy(false);
@@ -357,6 +390,30 @@ export default function AuthorizePage() {
               )}
             </div>
 
+            {showRelationshipDoc && (
+              <div className="p-4 bg-amber-50 border border-amber-300 rounded-lg">
+                <p className="text-sm font-semibold text-amber-800 mb-1">
+                  Documento de vínculo requerido
+                </p>
+                <p className="text-xs text-amber-700 mb-3">
+                  Según la edad del menor o tu relación con él, es necesario adjuntar un documento adicional: certidón/partida de nacimiento, documento de tutela, guarda legal o equivalente.
+                </p>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Documento de vínculo
+                </label>
+                <input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => setRelationshipDoc(e.target.files?.[0] || null)}
+                  className="w-full px-4 py-2 border border-amber-300 rounded-lg"
+                  required={showRelationshipDoc}
+                />
+                {relationshipDoc && (
+                  <p className="text-sm text-gray-500 mt-2">✓ {relationshipDoc.name}</p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
               <div className="flex items-start gap-3">
                 <input
@@ -401,7 +458,7 @@ export default function AuthorizePage() {
 
             <button
               type="submit"
-              disabled={loading || !minorDoc || !guardianDoc || !relationship || !terms || !privacy}
+              disabled={loading || !minorDoc || !guardianDoc || !relationship || !terms || !privacy || (showRelationshipDoc && !relationshipDoc)}
               className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50 transition"
             >
               {loading ? 'Enviando...' : 'Autorizar y enviar documentos'}
