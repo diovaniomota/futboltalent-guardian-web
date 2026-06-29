@@ -349,7 +349,17 @@ export default function AuthorizePage() {
                   className="mt-1"
                 />
                 <span className="text-sm text-gray-700">
-                  Acepto los términos y condiciones de FutbolTalent
+                  Acepto los{' '}
+                  <a
+                    href="https://futboltalent.pro/terms-and-conditions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-700 underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    términos y condiciones
+                  </a>{' '}
+                  de FutbolTalent
                 </span>
               </label>
               <label className="flex items-start gap-3 cursor-pointer">
@@ -360,7 +370,16 @@ export default function AuthorizePage() {
                   className="mt-1"
                 />
                 <span className="text-sm text-gray-700">
-                  Acepto la política de privacidad
+                  Acepto la{' '}
+                  <a
+                    href="https://futboltalent.pro/politica-privacidad"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-700 underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    política de privacidad
+                  </a>
                 </span>
               </label>
             </div>
