@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
+import { logGuardianAudit } from '../lib/auditLog';
 
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -102,6 +103,16 @@ export default function AuthorizePage() {
       setMessage(`✓ Verificado. Responsable: ${data.guardian_info?.name || 'Responsable'}`);
       setVerified(true);
       setError('');
+
+      logGuardianAudit({
+        action: 'guardian_code_verified',
+        entityId: String(data.guardian_info?.id ?? ''),
+        entityLabel: data.player_name || undefined,
+        details: {
+          guardian_email: emailVal.trim().toLowerCase(),
+          player_id: String(data.guardian_info?.player_id ?? ''),
+        },
+      });
     } catch (err: any) {
       setError(err.message || 'Error al verificar');
       setMessage('');
@@ -225,6 +236,20 @@ export default function AuthorizePage() {
       }
 
       await recordConsent();
+
+      logGuardianAudit({
+        action: 'guardian_consent_submitted',
+        entityId: guardianId || undefined,
+        entityLabel: playerName || undefined,
+        details: {
+          guardian_email: email.trim().toLowerCase(),
+          player_id: playerId,
+          relationship_type: relationship,
+          minor_doc: minorDoc?.name,
+          guardian_doc: guardianDoc?.name,
+          relationship_doc: relationshipDoc?.name,
+        },
+      });
 
       setVerified(false);
       setSuccess(true);
