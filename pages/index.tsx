@@ -355,19 +355,21 @@ export default function AuthorizePage() {
           <form onSubmit={handleSubmit} className="mt-8 space-y-6 pt-8 border-t">
             <div>
               <h2 className="text-xl font-bold text-gray-900">Confirmar autorización</h2>
-              <p className="text-sm text-gray-600 mt-1">Completa la documentación y confirma cada punto para autorizar la cuenta del jugador.</p>
+              <p className="text-sm text-gray-600 mt-2">Recibimos una solicitud para crear una cuenta en FutbolTalent para un jugador menor de edad utilizando este correo electrónico como contacto del adulto responsable. Antes de activar la cuenta, necesitamos verificar tu autorización.</p>
             </div>
 
             {playerName && (
-              <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3">
-                <span className="text-blue-700 text-lg">👤</span>
-                <p className="text-sm text-blue-800 font-medium">Estás autorizando la cuenta de <strong>{playerName}</strong></p>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 space-y-0.5">
+                <p className="text-sm font-bold text-blue-900">{playerName}</p>
+                {playerBirthDate && (
+                  <p className="text-sm text-blue-700">{calculateAge(playerBirthDate)} años</p>
+                )}
               </div>
             )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tu vínculo con el jugador *
+                Tu relación con el jugador *
               </label>
               <select
                 value={relationship}
@@ -387,12 +389,13 @@ export default function AuthorizePage() {
               <p className="text-sm font-medium text-gray-700 mb-1">Documentos de identidad *</p>
               <p className="text-sm text-gray-500 mb-3">Para verificar esta autorización, necesitamos una fotografía o copia legible de los documentos del jugador y del adulto responsable.</p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 text-sm text-amber-800">
-                <p className="font-semibold mb-2">Cómo tomar la foto correctamente:</p>
+                <p className="font-semibold mb-2">Documentación requerida:</p>
                 <ul className="space-y-1 list-disc list-inside">
-                  <li>Documento completo y bien iluminado</li>
-                  <li>Sin reflejos, sombras ni partes cortadas</li>
-                  <li>La foto debe ser nítida y con todos los bordes visibles</li>
-                  <li>Formatos aceptados: JPG · PNG · PDF — Máximo 5 MB</li>
+                  <li>Documento completo</li>
+                  <li>Buena iluminación</li>
+                  <li>Sin reflejos</li>
+                  <li>Formatos: JPG · PNG · PDF</li>
+                  <li>Hasta 5 MB</li>
                 </ul>
               </div>
             </div>
