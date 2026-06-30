@@ -401,7 +401,7 @@ export default function AuthorizePage() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-xs text-gray-500">Los documentos son privados y serán revisados sólo por el equipo de FutbolTalent.</p>
+              <p className="text-xs text-gray-500">Los documentos serán utilizados únicamente para verificar esta autorización y serán tratados conforme a nuestra Política de Privacidad.</p>
 
               <label className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition bg-white">
                 <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
