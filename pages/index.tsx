@@ -268,7 +268,7 @@ export default function AuthorizePage() {
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 placeholder="Ej: RESP-123456"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 required
               />
             </div>
@@ -282,7 +282,7 @@ export default function AuthorizePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value.toLowerCase())}
                 placeholder="Ej: responsable@email.com"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 required
               />
             </div>
@@ -385,7 +385,7 @@ export default function AuthorizePage() {
               <select
                 value={relationship}
                 onChange={(e) => setRelationship(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 required
               >
                 <option value="">Seleccionar vínculo...</option>
