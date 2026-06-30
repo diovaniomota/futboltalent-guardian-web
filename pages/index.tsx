@@ -21,6 +21,7 @@ export default function AuthorizePage() {
   const [decl2, setDecl2] = useState(false);
   const [decl3, setDecl3] = useState(false);
   const [decl4, setDecl4] = useState(false);
+  const [decl5, setDecl5] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -35,6 +36,16 @@ export default function AuthorizePage() {
     const m = now.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age--;
     return age;
+  }
+
+  function getRelationshipLabel(rel: string): string {
+    const labels: Record<string, string> = {
+      madre: 'madre',
+      padre: 'padre',
+      tutor_legal: 'tutor/a legal',
+      responsable_autorizado: 'responsable autorizado/a',
+    };
+    return labels[rel] || 'padre/madre/tutor';
   }
 
   function needsRelationshipDoc(birthDate: string | null, rel: string): boolean {
@@ -189,7 +200,7 @@ export default function AuthorizePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3 || !decl4) {
+    if (!minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3 || !decl4 || !decl5) {
       setError('Completa todos los campos y confirmá todas las declaraciones');
       return;
     }
@@ -369,7 +380,7 @@ export default function AuthorizePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Tu relación con el jugador *
+                Tu relación con {playerName || 'el jugador'} *
               </label>
               <select
                 value={relationship}
@@ -453,28 +464,50 @@ export default function AuthorizePage() {
                 Declaraciones *
               </div>
 
-              {[
-                { id: 'decl1', checked: decl1, set: setDecl1, text: 'Declaro ser el adulto responsable del jugador o contar con facultades suficientes para autorizar su participación en FutbolTalent.pro.' },
-                { id: 'decl2', checked: decl2, set: setDecl2, text: 'Declaro haber leído y aceptado los Términos y Condiciones y la Política de Privacidad de FutbolTalent.pro.' },
-                { id: 'decl3', checked: decl3, set: setDecl3, text: 'Autorizo la creación de la cuenta del jugador, el tratamiento de sus datos personales y la publicación de la información deportiva que el jugador decida compartir en la plataforma, de conformidad con la Política de Privacidad de FutbolTalent.pro.' },
-                { id: 'decl4', checked: decl4, set: setDecl4, text: 'Declaro que la información y documentación proporcionadas son veraces, auténticas y corresponden a las personas involucradas en esta solicitud.' },
-              ].map(({ id, checked, set, text }) => (
-                <div key={id} className="flex items-start gap-3">
-                  <input
-                    id={id}
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(e) => set(e.target.checked)}
-                    className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0"
-                  />
-                  <label htmlFor={id} className="text-sm text-gray-700 cursor-pointer leading-snug">{text}</label>
-                </div>
-              ))}
+              {/* decl1 — relação com o jogador */}
+              <div className="flex items-start gap-3">
+                <input id="decl1" type="checkbox" checked={decl1} onChange={(e) => setDecl1(e.target.checked)} className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0" />
+                <label htmlFor="decl1" className="text-sm text-gray-700 cursor-pointer leading-snug">
+                  Confirmo que soy {getRelationshipLabel(relationship)} de {playerName || 'el jugador'} y estoy autorizado a representarlo/a legalmente.
+                </label>
+              </div>
+              {/* decl2 — termos */}
+              <div className="flex items-start gap-3">
+                <input id="decl2" type="checkbox" checked={decl2} onChange={(e) => setDecl2(e.target.checked)} className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0" />
+                <label htmlFor="decl2" className="text-sm text-gray-700 cursor-pointer leading-snug">
+                  Acepto los{' '}
+                  <a href="https://futboltalent.pro/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-blue-900 underline font-semibold">Términos de Uso</a>
+                  {' '}de FutbolTalent.
+                </label>
+              </div>
+              {/* decl3 — privacidade */}
+              <div className="flex items-start gap-3">
+                <input id="decl3" type="checkbox" checked={decl3} onChange={(e) => setDecl3(e.target.checked)} className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0" />
+                <label htmlFor="decl3" className="text-sm text-gray-700 cursor-pointer leading-snug">
+                  Acepto la{' '}
+                  <a href="https://futboltalent.pro/politica-privacidad" target="_blank" rel="noopener noreferrer" className="text-blue-900 underline font-semibold">Política de Privacidad</a>
+                  {' '}de FutbolTalent.
+                </label>
+              </div>
+              {/* decl4 — perfil */}
+              <div className="flex items-start gap-3">
+                <input id="decl4" type="checkbox" checked={decl4} onChange={(e) => setDecl4(e.target.checked)} className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0" />
+                <label htmlFor="decl4" className="text-sm text-gray-700 cursor-pointer leading-snug">
+                  Autorizo la creación del perfil de {playerName || 'el jugador'} y la publicación de su información deportiva en la plataforma.
+                </label>
+              </div>
+              {/* decl5 — autenticidade docs */}
+              <div className="flex items-start gap-3">
+                <input id="decl5" type="checkbox" checked={decl5} onChange={(e) => setDecl5(e.target.checked)} className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0" />
+                <label htmlFor="decl5" className="text-sm text-gray-700 cursor-pointer leading-snug">
+                  Declaro que los documentos enviados son completos, legibles y auténticos, y que corresponden a personas reales. Entiendo que el envío de documentación falsa o ilegible constituye una conducta fraudulenta.
+                </label>
+              </div>
             </div>
 
             <button
               type="submit"
-              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3 || !decl4 || (showRelationshipDoc && !relationshipDoc)}
+              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3 || !decl4 || !decl5 || (showRelationshipDoc && !relationshipDoc)}
               className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 disabled:opacity-50 transition"
             >
               {loading ? 'Enviando...' : 'Autorizar cuenta'}
