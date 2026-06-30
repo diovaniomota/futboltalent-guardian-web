@@ -25,6 +25,7 @@ export default function AuthorizePage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [verified, setVerified] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [playerName, setPlayerName] = useState('');
 
   function calculateAge(birthday: string): number {
@@ -214,21 +215,8 @@ export default function AuthorizePage() {
 
       await recordConsent();
 
-      setMessage('✓ Cuenta autorizada y documentos enviados. El menor recibirá una notificación por email.');
       setVerified(false);
-      setCode('');
-      setEmail('');
-      setGuardianId('');
-      setPlayerId('');
-      setPlayerBirthDate(null);
-      setMinorDoc(null);
-      setGuardianDoc(null);
-      setRelationshipDoc(null);
-      setRelationship('');
-      setDecl1(false);
-      setDecl2(false);
-      setDecl3(false);
-      setDecl4(false);
+      setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Error al enviar');
     } finally {
@@ -340,7 +328,30 @@ export default function AuthorizePage() {
           </div>
         )}
 
-        {verified && (
+        {success && (
+          <div className="text-center py-8 space-y-4">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
+                <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900">¡Cuenta autorizada!</h2>
+            <p className="text-gray-600 max-w-sm mx-auto">
+              El perfil del jugador está activo. La documentación enviada será revisada por el equipo de FutbolTalent.
+            </p>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="text-sm text-gray-500 hover:text-gray-700 underline mt-4"
+            >
+              Volver al inicio
+            </button>
+          </div>
+        )}
+
+        {!success && verified && (
           <form onSubmit={handleSubmit} className="mt-8 space-y-6 pt-8 border-t">
             <div>
               <h2 className="text-xl font-bold text-gray-900">Confirmar autorización</h2>
@@ -479,3 +490,4 @@ export default function AuthorizePage() {
     </div>
   );
 }
+
