@@ -17,6 +17,7 @@ export default function AuthorizePage() {
   const [relationship, setRelationship] = useState('');
   const [minorDoc, setMinorDoc] = useState<File | null>(null);
   const [guardianDoc, setGuardianDoc] = useState<File | null>(null);
+  const [birthCertDoc, setBirthCertDoc] = useState<File | null>(null);
   const [relationshipDoc, setRelationshipDoc] = useState<File | null>(null);
   const [decl1, setDecl1] = useState(false);
   const [decl2, setDecl2] = useState(false);
@@ -237,6 +238,11 @@ export default function AuthorizePage() {
       const guardianBase64 = await fileToBase64(guardianDoc);
       await uploadDoc(guardianBase64, guardianDoc.type, 'guardian_doc');
 
+      if (birthCertDoc) {
+        const birthCertBase64 = await fileToBase64(birthCertDoc);
+        await uploadDoc(birthCertBase64, birthCertDoc.type, 'birth_cert_doc');
+      }
+
       if (showRelationshipDoc && relationshipDoc) {
         const relBase64 = await fileToBase64(relationshipDoc);
         await uploadDoc(relBase64, relationshipDoc.type, 'relationship_doc');
@@ -254,6 +260,7 @@ export default function AuthorizePage() {
           relationship_type: relationship,
           minor_doc: minorDoc?.name,
           guardian_doc: guardianDoc?.name,
+          birth_cert_doc: birthCertDoc?.name,
           relationship_doc: relationshipDoc?.name,
         },
       });
@@ -467,6 +474,17 @@ export default function AuthorizePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                 </svg>
                 <input type="file" accept="image/*,application/pdf" onChange={(e) => setGuardianDoc(e.target.files?.[0] || null)} className="hidden" />
+              </label>
+
+              <label className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition bg-white">
+                <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+                  <span className="text-gray-400 flex-shrink-0">📄</span>
+                  <span className="truncate">{birthCertDoc ? birthCertDoc.name : 'Partida/certidón de nacimiento (opcional)'}</span>
+                </div>
+                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <input type="file" accept="image/*,application/pdf" onChange={(e) => setBirthCertDoc(e.target.files?.[0] || null)} className="hidden" />
               </label>
             </div>
 
