@@ -80,7 +80,12 @@ export default function AuthorizePage() {
       );
 
       if (!response.ok) {
-        const errData = await response.json();
+        let errData: Record<string, unknown> = {};
+        try {
+          errData = await response.json();
+        } catch (_) {
+          // corpo não é JSON
+        }
         const errorMessages: Record<string, string> = {
           guardian_already_approved: 'Esta cuenta ya fue autorizada anteriormente. El código de autorización solo puede usarse una vez.',
           guardian_not_found: 'Código o email incorrecto. Verificá los datos e intentá nuevamente.',
@@ -89,9 +94,15 @@ export default function AuthorizePage() {
           db_query_failed: 'Error al consultar la base de datos. Intentá nuevamente en unos minutos.',
           invalid_payload: 'El código o el correo son inválidos. Recargá la página e intentá nuevamente.',
           missing_supabase_env: 'Error de configuración del servidor. Contactá al soporte.',
+          internal_error: 'Error interno del servidor. Intentá nuevamente en unos minutos.',
         };
-        const rawError = errData.error || '';
-        throw new Error(errorMessages[rawError] || `Verificación fallida (${rawError || 'desconocido'}). Intentá nuevamente.`);
+        // errData.error é o nosso campo; errData.message é erro de infraestrutura do Supabase
+        const rawError = String(errData.error || errData.message || errData.code || '');
+        const statusHint = `HTTP ${response.status}`;
+        throw new Error(
+          errorMessages[rawError] ||
+          (rawError ? `Verificación fallida: ${rawError} (${statusHint})` : `Verificación fallida (${statusHint}). Intentá nuevamente.`)
+        );
       }
 
       const data = await response.json();
