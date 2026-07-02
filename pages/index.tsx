@@ -20,6 +20,7 @@ export default function AuthorizePage() {
   const [birthCertDoc, setBirthCertDoc] = useState<File | null>(null);
   const [decl1, setDecl1] = useState(false);
   const [decl2, setDecl2] = useState(false);
+  const [decl3, setDecl3] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -230,7 +231,7 @@ export default function AuthorizePage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!minorDoc || !guardianDoc || !relationship || !decl1 || !decl2) {
+    if (!minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3) {
       setError('Completa todos los campos y confirmá todas las declaraciones');
       return;
     }
@@ -515,13 +516,20 @@ export default function AuthorizePage() {
               <div className="flex items-start gap-3">
                 <input id="decl1" type="checkbox" checked={decl1} onChange={(e) => setDecl1(e.target.checked)} className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0" />
                 <label htmlFor="decl1" className="text-sm text-gray-700 cursor-pointer leading-snug">
-                  Confirmo ser el adulto responsable de {playerName || 'el jugador'}, y que la documentación proporcionada es verídica y auténtica.
+                  Declaro ser madre, padre, tutor legal o adulto responsable del menor, y que la información proporcionada es verídica.
                 </label>
               </div>
               <div className="flex items-start gap-3">
                 <input id="decl2" type="checkbox" checked={decl2} onChange={(e) => setDecl2(e.target.checked)} className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0" />
                 <label htmlFor="decl2" className="text-sm text-gray-700 cursor-pointer leading-snug">
-                  Confirmo haber leído y aceptado los{' '}
+                  Autorizo la creación de la cuenta, el tratamiento de datos personales y el uso de imagen, voz, fotos y/o videos del menor dentro de FutbolTalent.pro, conforme a la{' '}
+                  <a href="https://futboltalent.pro/politica-privacidad" target="_blank" rel="noopener noreferrer" className="text-blue-900 underline font-semibold">Política de Privacidad</a>.
+                </label>
+              </div>
+              <div className="flex items-start gap-3">
+                <input id="decl3" type="checkbox" checked={decl3} onChange={(e) => setDecl3(e.target.checked)} className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0" />
+                <label htmlFor="decl3" className="text-sm text-gray-700 cursor-pointer leading-snug">
+                  Declaro haber leído y acepto los{' '}
                   <a href="https://futboltalent.pro/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="text-blue-900 underline font-semibold">Términos y Condiciones</a>
                   {' '}y la{' '}
                   <a href="https://futboltalent.pro/politica-privacidad" target="_blank" rel="noopener noreferrer" className="text-blue-900 underline font-semibold">Política de Privacidad</a>
@@ -532,7 +540,7 @@ export default function AuthorizePage() {
 
             <button
               type="submit"
-              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || (birthCertRequired && !birthCertDoc)}
+              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3 || (birthCertRequired && !birthCertDoc)}
               className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 disabled:opacity-50 transition"
             >
               {loading ? 'Enviando...' : 'Autorizar cuenta'}
