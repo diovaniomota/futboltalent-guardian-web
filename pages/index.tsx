@@ -86,9 +86,12 @@ export default function AuthorizePage() {
           guardian_not_found: 'Código o email incorrecto. Verificá los datos e intentá nuevamente.',
           guardian_code_expired: 'El código de autorización venció. El menor debe generar uno nuevo desde la app.',
           guardian_code_not_sendable: 'Este código no es válido. Contactá al club o al equipo de FutbolTalent.',
+          db_query_failed: 'Error al consultar la base de datos. Intentá nuevamente en unos minutos.',
+          invalid_payload: 'El código o el correo son inválidos. Recargá la página e intentá nuevamente.',
+          missing_supabase_env: 'Error de configuración del servidor. Contactá al soporte.',
         };
         const rawError = errData.error || '';
-        throw new Error(errorMessages[rawError] || 'Verificación fallida. Intentá nuevamente.');
+        throw new Error(errorMessages[rawError] || `Verificación fallida (${rawError || 'desconocido'}). Intentá nuevamente.`);
       }
 
       const data = await response.json();
