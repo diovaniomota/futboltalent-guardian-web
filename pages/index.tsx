@@ -522,7 +522,7 @@ export default function AuthorizePage() {
               <div className="flex items-start gap-3">
                 <input id="decl2" type="checkbox" checked={decl2} onChange={(e) => setDecl2(e.target.checked)} className="mt-0.5 cursor-pointer accent-blue-700 w-4 h-4 flex-shrink-0" />
                 <label htmlFor="decl2" className="text-sm text-gray-700 cursor-pointer leading-snug">
-                  Autorizo la creación de la cuenta, el tratamiento de datos personales y el uso de imagen, voz, fotos y/o videos del menor dentro de FutbolTalent.pro, conforme a la{' '}
+                  Autorizo la creación de la cuenta del menor en FutbolTalent.pro y el tratamiento de sus datos personales, incluyendo información deportiva, imágenes, fotos, videos, voz y contenidos que se carguen en la plataforma, conforme a la{' '}
                   <a href="https://futboltalent.pro/politica-privacidad" target="_blank" rel="noopener noreferrer" className="text-blue-900 underline font-semibold">Política de Privacidad</a>.
                 </label>
               </div>
