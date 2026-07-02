@@ -47,6 +47,14 @@ export default function AuthorizePage() {
     return labels[rel] || 'padre/madre/tutor';
   }
 
+  function birthCertIsRequired(birthDate: string | null): boolean {
+    if (!birthDate) return false;
+    const age = calculateAge(birthDate);
+    return age >= 13 && age <= 15;
+  }
+
+  const birthCertRequired = birthCertIsRequired(playerBirthDate);
+
   const verifyCode = useCallback(async (codeVal: string, emailVal: string) => {
     setError('');
     setLoading(true);
@@ -103,7 +111,7 @@ export default function AuthorizePage() {
       setPlayerName(String(data.player_name || ''));
       setPlayerEmail(String(data.player_email || ''));
 
-      setMessage(`✓ Verificado. Responsable: ${data.guardian_info?.name || 'Responsable'}`);
+      setMessage(`Solicitud válida. Responsable declarado: ${data.guardian_info?.name || 'Responsable'}`);
       setVerified(true);
       setError('');
 
@@ -224,6 +232,10 @@ export default function AuthorizePage() {
     e.preventDefault();
     if (!minorDoc || !guardianDoc || !relationship || !decl1 || !decl2) {
       setError('Completa todos los campos y confirmá todas las declaraciones');
+      return;
+    }
+    if (birthCertRequired && !birthCertDoc) {
+      setError('Debes adjuntar el documento que acredite el vínculo o la responsabilidad sobre el menor (obligatorio para menores de 13 a 15 años).');
       return;
     }
 
@@ -469,16 +481,27 @@ export default function AuthorizePage() {
                 <input type="file" accept="image/*,application/pdf" onChange={(e) => setGuardianDoc(e.target.files?.[0] || null)} className="hidden" />
               </label>
 
-              <label className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition bg-white">
-                <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
-                  <span className="text-gray-400 flex-shrink-0">📄</span>
-                  <span className="truncate">{birthCertDoc ? birthCertDoc.name : 'Partida/certidón de nacimiento (opcional)'}</span>
-                </div>
-                <svg className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                <input type="file" accept="image/*,application/pdf" onChange={(e) => setBirthCertDoc(e.target.files?.[0] || null)} className="hidden" />
-              </label>
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  Documento que acredite vínculo o responsabilidad {birthCertRequired ? <span className="text-red-500">*</span> : <span className="text-gray-400 font-normal">(opcional)</span>}
+                </p>
+                <p className="text-xs text-gray-500 mb-2">
+                  Adjuntá un documento que permita acreditar el vínculo o la responsabilidad sobre el menor.
+                </p>
+                <p className="text-xs text-gray-400 mb-2">
+                  Ej. partida o certificado de nacimiento, documento de tutela, o equivalente.
+                </p>
+                <label className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 transition bg-white">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
+                    <span className="text-gray-400 flex-shrink-0">📄</span>
+                    <span className="truncate">{birthCertDoc ? birthCertDoc.name : 'Seleccionar documento...'}</span>
+                  </div>
+                  <svg className="w-5 h-5 text-blue-600 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  <input type="file" accept="image/*,application/pdf" onChange={(e) => setBirthCertDoc(e.target.files?.[0] || null)} className="hidden" />
+                </label>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -509,7 +532,7 @@ export default function AuthorizePage() {
 
             <button
               type="submit"
-              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2}
+              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || (birthCertRequired && !birthCertDoc)}
               className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 disabled:opacity-50 transition"
             >
               {loading ? 'Enviando...' : 'Autorizar cuenta'}
