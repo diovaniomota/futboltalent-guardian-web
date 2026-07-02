@@ -18,7 +18,6 @@ export default function AuthorizePage() {
   const [minorDoc, setMinorDoc] = useState<File | null>(null);
   const [guardianDoc, setGuardianDoc] = useState<File | null>(null);
   const [birthCertDoc, setBirthCertDoc] = useState<File | null>(null);
-  const [relationshipDoc, setRelationshipDoc] = useState<File | null>(null);
   const [decl1, setDecl1] = useState(false);
   const [decl2, setDecl2] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,16 +46,6 @@ export default function AuthorizePage() {
     };
     return labels[rel] || 'padre/madre/tutor';
   }
-
-  function needsRelationshipDoc(birthDate: string | null, rel: string): boolean {
-    if (!birthDate) return false;
-    const age = calculateAge(birthDate);
-    if (age <= 15) return true;
-    if (age <= 17 && rel !== 'madre' && rel !== 'padre') return true;
-    return false;
-  }
-
-  const showRelationshipDoc = needsRelationshipDoc(playerBirthDate, relationship);
 
   const verifyCode = useCallback(async (codeVal: string, emailVal: string) => {
     setError('');
@@ -237,10 +226,6 @@ export default function AuthorizePage() {
       setError('Completa todos los campos y confirmá todas las declaraciones');
       return;
     }
-    if (showRelationshipDoc && !relationshipDoc) {
-      setError('Debes adjuntar el documento de vínculo (certidón de nacimiento, tutela, etc.)');
-      return;
-    }
 
     setError('');
     setLoading(true);
@@ -257,11 +242,6 @@ export default function AuthorizePage() {
         await uploadDoc(birthCertBase64, birthCertDoc.type, 'birth_cert_doc');
       }
 
-      if (showRelationshipDoc && relationshipDoc) {
-        const relBase64 = await fileToBase64(relationshipDoc);
-        await uploadDoc(relBase64, relationshipDoc.type, 'relationship_doc');
-      }
-
       await recordConsent();
 
       logGuardianAudit({
@@ -275,7 +255,6 @@ export default function AuthorizePage() {
           minor_doc: minorDoc?.name,
           guardian_doc: guardianDoc?.name,
           birth_cert_doc: birthCertDoc?.name,
-          relationship_doc: relationshipDoc?.name,
         },
       });
 
@@ -502,25 +481,6 @@ export default function AuthorizePage() {
               </label>
             </div>
 
-            {showRelationshipDoc && (
-              <div className="p-4 bg-amber-50 border border-amber-300 rounded-lg">
-                <p className="text-sm font-semibold text-amber-800 mb-1">Documento de vínculo requerido</p>
-                <p className="text-xs text-amber-700 mb-3">
-                  Según la edad del menor o tu relación con él, es necesario adjuntar un documento adicional: certidón/partida de nacimiento, documento de tutela, guarda legal o equivalente.
-                </p>
-                <label className="flex items-center justify-between w-full px-4 py-3 border border-amber-300 rounded-lg cursor-pointer hover:border-amber-500 transition bg-white">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 min-w-0">
-                    <span className="text-gray-400 flex-shrink-0">📄</span>
-                    <span className="truncate">{relationshipDoc ? relationshipDoc.name : 'Documento de vínculo'}</span>
-                  </div>
-                  <svg className="w-5 h-5 text-amber-600 flex-shrink-0 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  <input type="file" accept="image/*,application/pdf" onChange={(e) => setRelationshipDoc(e.target.files?.[0] || null)} className="hidden" />
-                </label>
-              </div>
-            )}
-
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -549,7 +509,7 @@ export default function AuthorizePage() {
 
             <button
               type="submit"
-              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || (showRelationshipDoc && !relationshipDoc)}
+              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2}
               className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 disabled:opacity-50 transition"
             >
               {loading ? 'Enviando...' : 'Autorizar cuenta'}
