@@ -312,7 +312,7 @@ export default function AuthorizePage() {
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="Ej: RESP-123456"
+                placeholder="Ej: RESP-7K2M9QX4TB3N"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
                 required
               />
@@ -359,7 +359,7 @@ export default function AuthorizePage() {
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    placeholder="Código (Ej: RESP-123456)"
+                    placeholder="Código (Ej: RESP-7K2M9QX4TB3N)"
                     className="w-full px-3 py-2 border border-red-300 rounded-lg text-gray-900 text-sm"
                     required
                   />

@@ -7,7 +7,7 @@ Web version para que responsables legales autoricen cuentas de menores y envíen
 - ✅ Verificación de código + email del responsable
 - ✅ Upload de documentos (menor + responsable)
 - ✅ Aceptación de términos y privacidad
-- ✅ Auto-relleno desde URL: `?code=RESP-123456&email=responsable@mail.com`
+- ✅ Auto-relleno desde URL: `?code=RESP-7K2M9QX4TB3N&email=responsable@mail.com`
 - ✅ Integración con Supabase Edge Functions existentes
 
 ## Setup
@@ -32,7 +32,7 @@ Hospedar en:
 
 El link en el email que recibe el responsable debe ser:
 ```
-https://guardian.futboltalent.pro/?code=RESP-123456&email=responsable@email.com
+https://guardian.futboltalent.pro/?code=RESP-7K2M9QX4TB3N&email=responsable@email.com
 ```
 
 Los parámetros se auto-rellenan en el formulario, pero el responsable puede editarlos manualmente.
