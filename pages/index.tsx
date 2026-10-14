@@ -397,9 +397,9 @@ export default function AuthorizePage() {
                 </svg>
               </div>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">¡Cuenta autorizada!</h2>
+            <h2 className="text-2xl font-bold text-gray-900">¡Documentación enviada!</h2>
             <p className="text-gray-600 max-w-sm mx-auto">
-              El perfil del jugador está activo. La documentación enviada será revisada por el equipo de FutbolTalent.
+              Recibimos la documentación. La cuenta permanece pendiente hasta que el equipo de FutbolTalent revise los documentos.
             </p>
             <button
               type="button"
