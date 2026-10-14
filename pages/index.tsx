@@ -118,6 +118,8 @@ export default function AuthorizePage() {
 
       logGuardianAudit({
         action: 'guardian_code_verified',
+        code: codeVal,
+        guardianEmail: emailVal.trim().toLowerCase(),
         entityId: String(data.guardian_info?.id ?? ''),
         entityLabel: data.player_name || undefined,
         details: {
@@ -259,6 +261,8 @@ export default function AuthorizePage() {
 
       logGuardianAudit({
         action: 'guardian_consent_submitted',
+        code,
+        guardianEmail: email.trim().toLowerCase(),
         entityId: guardianId || undefined,
         entityLabel: playerName || undefined,
         details: {
