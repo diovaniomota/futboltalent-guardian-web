@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { logGuardianAudit } from '../lib/auditLog';
+import { consentErrorMessage, uploadErrorMessage, verifyErrorMessage } from '../lib/apiErrors';
 
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -84,23 +85,7 @@ export default function AuthorizePage() {
         } catch (_) {
           // corpo não é JSON
         }
-        const errorMessages: Record<string, string> = {
-          guardian_already_approved: 'Esta cuenta ya fue autorizada anteriormente. El código de autorización solo puede usarse una vez.',
-          guardian_not_found: 'Código o email incorrecto. Verificá los datos e intentá nuevamente.',
-          guardian_code_expired: 'El código de autorización venció. El menor debe generar uno nuevo desde la app.',
-          guardian_code_not_sendable: 'Este código no es válido. Contactá al club o al equipo de FutbolTalent.',
-          db_query_failed: 'Error al consultar la base de datos. Intentá nuevamente en unos minutos.',
-          invalid_payload: 'El código o el correo son inválidos. Recargá la página e intentá nuevamente.',
-          missing_supabase_env: 'Error de configuración del servidor. Contactá al soporte.',
-          internal_error: 'Error interno del servidor. Intentá nuevamente en unos minutos.',
-        };
-        // errData.error é o nosso campo; errData.message é erro de infraestrutura do Supabase
-        const rawError = String(errData.error || errData.message || errData.code || '');
-        const statusHint = `HTTP ${response.status}`;
-        throw new Error(
-          errorMessages[rawError] ||
-          (rawError ? `Verificación fallida: ${rawError} (${statusHint})` : `Verificación fallida (${statusHint}). Intentá nuevamente.`)
-        );
+        throw new Error(verifyErrorMessage(response.status, errData));
       }
 
       const data = await response.json();
@@ -189,7 +174,7 @@ export default function AuthorizePage() {
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({ error: 'unknown' }));
-      throw new Error(`Error al subir el documento (${errData.error || response.status}). Intentá nuevamente.`);
+      throw new Error(uploadErrorMessage(response.status, errData));
     }
     return response.json();
   };
@@ -216,17 +201,7 @@ export default function AuthorizePage() {
 
     if (!response.ok) {
       const err = await response.json().catch(() => ({ error: 'parse_error' }));
-      const consentErrors: Record<string, string> = {
-        guardian_already_approved: 'Esta cuenta ya fue autorizada anteriormente.',
-        guardian_not_found: 'No se encontró el registro. Verificá que el código sea correcto e intentá nuevamente.',
-        consent_record_failed: 'Error al guardar la autorización en la base de datos. Intentá nuevamente.',
-        db_lookup_failed: 'Error al consultar la base de datos. Intentá nuevamente en unos minutos.',
-        guardian_id_and_player_id_required: 'No se pudo identificar al responsable. Recargá la página e intentá nuevamente.',
-        guardian_code_and_email_required: 'El código o el correo son inválidos. Recargá la página e intentá nuevamente.',
-        auth_required: 'Error de autenticación. Recargá la página e intentá nuevamente.',
-        missing_supabase_env: 'Error de configuración del servidor. Contactá al soporte.',
-      };
-      throw new Error(consentErrors[err.error] || `Error al registrar la autorización (${err.error || 'desconocido'}). Intentá nuevamente.`);
+      throw new Error(consentErrorMessage(response.status, err));
     }
     return response.json();
   };
