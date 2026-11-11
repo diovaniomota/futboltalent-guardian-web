@@ -33,6 +33,7 @@ const VERIFY_ERRORS: Record<string, string> = {
 
 const CONSENT_ERRORS: Record<string, string> = {
   guardian_already_approved: 'Esta cuenta ya fue autorizada anteriormente.',
+  guardian_name_invalid: 'Escribí tu nombre y apellido tal como figuran en tu documento de identidad (sin números ni símbolos).',
   guardian_not_found: 'No se encontró el registro. Verificá que el código sea correcto e intentá nuevamente.',
   consent_record_failed: 'Error al guardar la autorización en la base de datos. Intentá nuevamente.',
   db_lookup_failed: 'Error al consultar la base de datos. Intentá nuevamente en unos minutos.',

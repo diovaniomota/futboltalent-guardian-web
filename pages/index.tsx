@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { logGuardianAudit } from '../lib/auditLog';
 import { consentErrorMessage, uploadErrorMessage, verifyErrorMessage } from '../lib/apiErrors';
+import { NOME_RESPONSAVEL_MAX, nomeDoResponsavelConhecido, normalizarNomeResponsavel } from '../lib/guardianName';
 
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -16,6 +17,7 @@ export default function AuthorizePage() {
   const [playerId, setPlayerId] = useState('');
   const [playerBirthDate, setPlayerBirthDate] = useState<string | null>(null);
   const [relationship, setRelationship] = useState('');
+  const [guardianName, setGuardianName] = useState('');
   const [minorDoc, setMinorDoc] = useState<File | null>(null);
   const [guardianDoc, setGuardianDoc] = useState<File | null>(null);
   const [birthCertDoc, setBirthCertDoc] = useState<File | null>(null);
@@ -97,7 +99,9 @@ export default function AuthorizePage() {
       setPlayerName(String(data.player_name || ''));
       setPlayerEmail(String(data.player_email || ''));
 
-      setMessage(`Solicitud válida. Responsable declarado: ${data.guardian_info?.name || 'Responsable'}`);
+      // O app gravava o texto fixo "Responsable legal" no lugar do nome: não é o nome de ninguém, não se mostra.
+      const declarado = nomeDoResponsavelConhecido(data.guardian_info?.name);
+      setMessage(declarado ? `Solicitud válida. Responsable declarado: ${declarado}` : 'Solicitud válida.');
       setVerified(true);
       setError('');
 
@@ -195,6 +199,8 @@ export default function AuthorizePage() {
           guardian_id: guardianId,
           player_id: playerId,
           relationship_type: relationship,
+          // a conferência automática procura este nome no documento do responsável
+          guardian_name: normalizarNomeResponsavel(guardianName),
         }),
       }
     );
@@ -210,6 +216,10 @@ export default function AuthorizePage() {
     e.preventDefault();
     if (!minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3) {
       setError('Completa todos los campos y confirmá todas las declaraciones');
+      return;
+    }
+    if (!normalizarNomeResponsavel(guardianName)) {
+      setError('Escribí tu nombre y apellido tal como figuran en tu documento de identidad (sin números ni símbolos).');
       return;
     }
     if (birthCertRequired && !birthCertDoc) {
@@ -251,6 +261,7 @@ export default function AuthorizePage() {
       });
 
       setVerified(false);
+      setMessage('');
       setSuccess(true);
     } catch (err: any) {
       setError(err.message || 'Error al enviar');
@@ -281,7 +292,8 @@ export default function AuthorizePage() {
           </div>
         )}
 
-        {!loading && !verified && (
+        {/* Depois do envio `verified` volta a false: sem o `!success` o formulário do código reaparecia em cima do sucesso. */}
+        {!loading && !verified && !success && (
           <form onSubmit={handleVerify} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -422,6 +434,24 @@ export default function AuthorizePage() {
             </div>
 
             <div>
+              <label htmlFor="guardianName" className="block text-sm font-medium text-gray-700 mb-2">
+                Tu nombre y apellido *
+              </label>
+              <input
+                id="guardianName"
+                type="text"
+                autoComplete="name"
+                value={guardianName}
+                onChange={(e) => setGuardianName(e.target.value)}
+                maxLength={NOME_RESPONSAVEL_MAX}
+                placeholder="Ej: María José Gómez Sosa"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 bg-white"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">Tal como figuran en tu documento de identidad. Los usamos para verificar tu documento.</p>
+            </div>
+
+            <div>
               <p className="text-sm font-medium text-gray-700 mb-1">Documentos de identidad *</p>
               <p className="text-sm text-gray-500 mb-3">Para verificar esta autorización, necesitamos una fotografía o copia legible de los documentos del jugador y del adulto responsable.</p>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4 text-sm text-amber-800">
@@ -519,7 +549,7 @@ export default function AuthorizePage() {
 
             <button
               type="submit"
-              disabled={loading || !minorDoc || !guardianDoc || !relationship || !decl1 || !decl2 || !decl3 || (birthCertRequired && !birthCertDoc)}
+              disabled={loading || !minorDoc || !guardianDoc || !relationship || !guardianName.trim() || !decl1 || !decl2 || !decl3 || (birthCertRequired && !birthCertDoc)}
               className="w-full bg-blue-900 text-white py-3 rounded-lg font-semibold hover:bg-blue-800 disabled:opacity-50 transition"
             >
               {loading ? 'Enviando...' : 'Autorizar cuenta'}
